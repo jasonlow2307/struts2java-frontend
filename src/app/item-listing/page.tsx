@@ -100,6 +100,10 @@ export default function ItemListingPage() {
     }
   };
 
+  if (localStorage.getItem("authenticated") != "true") {
+    router.push("/");
+  }
+
   return (
     <div className="p-6 max-w-3xl mx-auto">
       <h2 className="text-2xl font-bold mb-4">Item Listing</h2>

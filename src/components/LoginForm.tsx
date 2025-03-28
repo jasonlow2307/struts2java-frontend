@@ -23,6 +23,7 @@ const LoginForm = () => {
       );
 
       if (response.ok) {
+        localStorage.setItem("authenticated", "true");
         router.replace("/menu");
       } else {
         const data = await response.json();

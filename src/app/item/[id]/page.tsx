@@ -47,6 +47,9 @@ export default function ItemDetailPage({ params }: { params: { id: string } }) {
 
     fetchItem();
   }, [params.id]);
+  if (localStorage.getItem("authenticated") != "true") {
+    router.push("/");
+  }
 
   if (error) return <p className="text-red-500">{error}</p>;
 

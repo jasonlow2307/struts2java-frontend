@@ -18,6 +18,10 @@ export default function MenuPage() {
     router.push("/price-summary");
   };
 
+  if (localStorage.getItem("authenticated") != "true") {
+    router.push("/");
+  }
+
   return (
     <div>
       {/* <Header /> */}

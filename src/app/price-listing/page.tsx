@@ -1,5 +1,6 @@
 "use client";
 
+import router from "next/router";
 import { useEffect, useState } from "react";
 
 export type Item = {
@@ -36,6 +37,10 @@ export default function PriceListingPage() {
 
     fetchPrices();
   }, []);
+
+  if (localStorage.getItem("authenticated") != "true") {
+    router.push("/");
+  }
 
   if (error) return <p className="text-red-500">{error}</p>;
 

@@ -1,5 +1,6 @@
 "use client";
 
+import router from "next/router";
 import { useState } from "react";
 
 export default function PriceSummaryPage() {
@@ -39,6 +40,10 @@ export default function PriceSummaryPage() {
       setError(error.message);
     }
   };
+
+  if (localStorage.getItem("authenticated") != "true") {
+    router.push("/");
+  }
 
   return (
     <div className="p-4">
