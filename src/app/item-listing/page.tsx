@@ -25,26 +25,62 @@ export default function ItemListingPage() {
     price: 0,
     quantity: 0,
   });
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
-    async function fetchItems() {
-      try {
-        const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/item/itemListing`,
-          { credentials: "include" }
-        );
-        if (!response.ok)
-          throw new Error(`HTTP error! Status: ${response.status}`);
-        const data: Item[] = await response.json();
-        setItems(data);
-      } catch (error: any) {
-        setError(error.message);
-      }
-    }
-    fetchItems();
-  }, []);
+    // Move localStorage check inside useEffect
+    const authStatus =
+      typeof window !== "undefined"
+        ? localStorage.getItem("authenticated") === "true"
+        : false;
+    setIsAuthenticated(authStatus);
 
+    if (!authStatus) {
+      router.push("/");
+    }
+  }, [router]);
+
+  useEffect(() => {
+    // Only fetch items if authenticated
+    if (isAuthenticated) {
+      async function fetchItems() {
+        try {
+          const response = await fetch(
+            `${process.env.NEXT_PUBLIC_API_URL}/api/items`,
+            { credentials: "include" }
+          );
+
+          if (!response.ok)
+            throw new Error(`HTTP error! Status: ${response.status}`);
+
+          // Extract the nested data array from the response
+          const responseData = await response.json();
+          console.log("API response:", responseData);
+
+          // Check if the response has the expected structure
+          if (
+            responseData &&
+            responseData.success &&
+            Array.isArray(responseData.data)
+          ) {
+            setItems(responseData.data);
+          } else {
+            console.error("Unexpected API response format:", responseData);
+            setItems([]);
+            setError("Invalid data format received from server");
+          }
+        } catch (error: any) {
+          console.error("Error fetching items:", error);
+          setError(error.message);
+          setItems([]);
+        }
+      }
+      fetchItems();
+    }
+  }, [isAuthenticated]);
+
+  // Rest of your component remains the same
   const openModal = (item?: Item) => {
     if (item) {
       setFormData(item);
@@ -68,7 +104,7 @@ export default function ItemListingPage() {
     const method = isEditing ? "PUT" : "POST";
     const url = isEditing
       ? `${process.env.NEXT_PUBLIC_API_URL}/item/${formData.id}`
-      : `${process.env.NEXT_PUBLIC_API_URL}/item`;
+      : `${process.env.NEXT_PUBLIC_API_URL}/api/items`;
 
     try {
       const response = await fetch(url, {
@@ -100,9 +136,11 @@ export default function ItemListingPage() {
     }
   };
 
-  if (localStorage.getItem("authenticated") != "true") {
-    router.push("/");
+  // Show loading state if authentication is still being checked
+  if (!isAuthenticated) {
+    return <div className="p-6">Checking authentication...</div>;
   }
+  console.log("ITEMS", items);
 
   return (
     <div className="p-6 max-w-3xl mx-auto">
@@ -117,33 +155,35 @@ export default function ItemListingPage() {
       </button>
 
       <ul className="space-y-4">
-        {items.map((item) => (
-          <li
-            key={item.id}
-            className="p-4 border rounded-lg shadow-md bg-white"
-          >
-            <h3 className="text-lg font-semibold text-black">{item.name}</h3>
-            <p className="text-sm text-gray-600">{item.description}</p>
-            <p className="mt-2 text-gray-800">
-              Price: ${item.price.toFixed(2)}
-            </p>
-            <p className="text-gray-800">Quantity: {item.quantity}</p>
-            <div className="mt-3 space-x-2">
-              <button
-                className="bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600"
-                onClick={() => openModal(item)}
-              >
-                Edit
-              </button>
-              <button
-                className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
-                onClick={() => handleDelete(item.id)}
-              >
-                Delete
-              </button>
-            </div>
-          </li>
-        ))}
+        {Array.isArray(items) &&
+          items.length !== 0 &&
+          items.map((item) => (
+            <li
+              key={item.id}
+              className="p-4 border rounded-lg shadow-md bg-white"
+            >
+              <h3 className="text-lg font-semibold text-black">{item.name}</h3>
+              <p className="text-sm text-gray-600">{item.description}</p>
+              <p className="mt-2 text-gray-800">
+                Price: ${item.price.toFixed(2)}
+              </p>
+              <p className="text-gray-800">Quantity: {item.quantity}</p>
+              <div className="mt-3 space-x-2">
+                <button
+                  className="bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600"
+                  onClick={() => openModal(item)}
+                >
+                  Edit
+                </button>
+                <button
+                  className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
+                  onClick={() => handleDelete(item.id)}
+                >
+                  Delete
+                </button>
+              </div>
+            </li>
+          ))}
       </ul>
 
       <Dialog

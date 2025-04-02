@@ -14,16 +14,12 @@ export default function PriceSummaryPage() {
 
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/prices/summary`,
+        `${process.env.NEXT_PUBLIC_API_URL}/api/prices/summary?itemIds=${itemId}&quantities=${quantity}`,
         {
-          method: "POST",
+          method: "GET",
           headers: {
             "Content-Type": "application/x-www-form-urlencoded",
           },
-          body: new URLSearchParams({
-            itemId: itemId,
-            quantity: quantity,
-          }),
           credentials: "include",
         }
       );

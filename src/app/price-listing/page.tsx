@@ -17,7 +17,7 @@ export default function PriceListingPage() {
     async function fetchPrices() {
       try {
         const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/prices/list`,
+          `${process.env.NEXT_PUBLIC_API_URL}/api/prices`,
           {
             credentials: "include",
           }
